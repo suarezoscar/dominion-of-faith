@@ -1,6 +1,7 @@
-import { Actor, Color, vec, Circle, Text, Font, TextAlign } from 'excalibur';
+import { Actor, Color, vec, Circle, Sprite } from 'excalibur';
 import { UnitData, UnitType, UnitLevel, Position } from '../types';
 import { GAME_CONFIG } from '../config';
+import { Resources } from '../resources';
 
 export class Unit extends Actor {
   private unitData: UnitData;
@@ -12,8 +13,8 @@ export class Unit extends Actor {
         unitData.position.x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
         unitData.position.y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2
       ),
-      width: GAME_CONFIG.TILE_SIZE * 0.6,
-      height: GAME_CONFIG.TILE_SIZE * 0.6,
+      width: GAME_CONFIG.TILE_SIZE,
+      height: GAME_CONFIG.TILE_SIZE,
       z: 10
     });
 
@@ -22,16 +23,38 @@ export class Unit extends Actor {
   }
 
   private setupGraphics(): void {
-    const color = this.getUnitColor();
-    const size = this.getUnitSize();
+    const sprite = this.getUnitSprite();
+    if (sprite) {
+      this.graphics.use(sprite);
+    } else {
+      // Fallback a círculo de color
+      const color = this.getUnitColor();
+      const size = this.getUnitSize();
+      const circle = new Circle({
+        radius: size,
+        color
+      });
+      this.graphics.use(circle);
+    }
+  }
 
-    // Círculo para representar la unidad
-    const circle = new Circle({
-      radius: size,
-      color
-    });
-
-    this.graphics.use(circle);
+  private getUnitSprite(): Sprite | null {
+    if (this.unitData.type === UnitType.Bishop) {
+      return Resources.Bishop1.toSprite();
+    } else if (this.unitData.type === UnitType.Knight) {
+      // Usar diferentes sprites según el nivel
+      switch (this.unitData.level) {
+        case UnitLevel.Basic:
+          return Resources.Knight1.toSprite();
+        case UnitLevel.Veteran:
+          return Resources.Knight2.toSprite();
+        case UnitLevel.Elite:
+          return Resources.Knight3.toSprite();
+        default:
+          return Resources.Knight1.toSprite();
+      }
+    }
+    return null;
   }
 
   private getUnitColor(): Color {
@@ -77,21 +100,33 @@ export class Unit extends Actor {
   }
 
   private updateVisuals(): void {
-    let color = this.getUnitColor();
+    const sprite = this.getUnitSprite();
 
-    if (this.selected) {
-      color = color.lighten(0.3);
-    } else if (this.unitData.hasMoved) {
-      color = color.darken(0.3);
+    if (sprite) {
+      // Aplicar tinte según estado
+      if (this.selected) {
+        sprite.tint = Color.Yellow; // Resaltar en amarillo cuando está seleccionado
+      } else if (this.unitData.hasMoved) {
+        sprite.tint = Color.Gray; // Gris cuando ya se movió
+      } else {
+        sprite.tint = Color.White; // Normal
+      }
+      this.graphics.use(sprite);
+    } else {
+      // Fallback a círculo
+      let color = this.getUnitColor();
+      if (this.selected) {
+        color = color.lighten(0.3);
+      } else if (this.unitData.hasMoved) {
+        color = color.darken(0.3);
+      }
+      const size = this.getUnitSize();
+      const circle = new Circle({
+        radius: size,
+        color
+      });
+      this.graphics.use(circle);
     }
-
-    const size = this.getUnitSize();
-    const circle = new Circle({
-      radius: size,
-      color
-    });
-
-    this.graphics.use(circle);
   }
 
   public canMerge(otherUnit: Unit): boolean {
