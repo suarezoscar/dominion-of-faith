@@ -2,10 +2,11 @@
 
 import { TerrainType, TerrainModifiers } from './types';
 
+// Configuración optimizada para móvil
 export const GAME_CONFIG = {
-  TILE_SIZE: 64,
-  MAP_WIDTH: 20,
-  MAP_HEIGHT: 15,
+  TILE_SIZE: 64, // Tamaño de cada tile (64x64px para las imágenes)
+  MAP_WIDTH: 12, // Reducido para móvil (768px de ancho)
+  MAP_HEIGHT: 10, // Reducido para móvil (640px de alto)
   MAX_TURNS: 50,
   INITIAL_GOLD: 100,
   INITIAL_FAITH: 0,

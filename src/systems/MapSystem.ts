@@ -28,14 +28,14 @@ export class MapSystem {
   }
 
   private generateTerrain(x: number, y: number): TerrainType {
-    // Generación procedural simple
+    // Generación procedural ajustada para mapa 12x10 (móvil)
     // Castillos en las esquinas
     if ((x === 1 && y === 1) || (x === GAME_CONFIG.MAP_WIDTH - 2 && y === GAME_CONFIG.MAP_HEIGHT - 2)) {
       return TerrainType.Castle;
     }
 
-    // Algunas iglesias distribuidas
-    if ((x % 5 === 0 && y % 5 === 0) && x > 0 && y > 0) {
+    // Iglesias estratégicamente distribuidas (menos que antes por mapa más pequeño)
+    if ((x === 6 && y === 5) || (x === 3 && y === 7) || (x === 9 && y === 3)) {
       return TerrainType.Church;
     }
 
