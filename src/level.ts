@@ -1,40 +1,59 @@
-import { DefaultLoader, Engine, ExcaliburGraphicsContext, Scene, SceneActivationContext } from "excalibur";
-import { Player } from "./player";
+import { Scene, Engine, Keys } from 'excalibur';
+import { GameManager } from './systems/GameManager';
+import { UnitType, UnitLevel } from './types';
 
-export class MyLevel extends Scene {
-    override onInitialize(engine: Engine): void {
-        // Scene.onInitialize is where we recommend you perform the composition for your game
-        const player = new Player();
-        this.add(player); // Actors need to be added to a scene to be drawn
-    }
+export class GameLevel extends Scene {
+  private gameManager!: GameManager;
+  private selectedUnit: any = null;
 
-    override onPreLoad(loader: DefaultLoader): void {
-        // Add any scene specific resources to load
-    }
+  override onInitialize(engine: Engine): void {
+    console.log('Inicializando nivel de juego...');
 
-    override onActivate(context: SceneActivationContext<unknown>): void {
-        // Called when Excalibur transitions to this scene
-        // Only 1 scene is active at a time
-    }
+    this.gameManager = new GameManager(this);
+    this.gameManager.initialize();
 
-    override onDeactivate(context: SceneActivationContext): void {
-        // Called when Excalibur transitions away from this scene
-        // Only 1 scene is active at a time
-    }
+    // Crear algunas unidades de prueba
+    const unitSystem = this.gameManager.getUnitSystem();
 
-    override onPreUpdate(engine: Engine, elapsedMs: number): void {
-        // Called before anything updates in the scene
-    }
+    // Unidades para jugador 1
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player1', { x: 2, y: 2 });
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player1', { x: 3, y: 2 });
 
-    override onPostUpdate(engine: Engine, elapsedMs: number): void {
-        // Called after everything updates in the scene
-    }
+    // Unidades para jugador 2
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player2', { x: 17, y: 12 });
 
-    override onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
-        // Called before Excalibur draws to the screen
-    }
+    // Configurar controles
+    this.setupInput();
+  }
 
-    override onPostDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
-        // Called after Excalibur draws to the screen
-    }
+  private setupInput(): void {
+    // Tecla ESPACIO para avanzar de fase
+    this.input.keyboard.on('press', (evt) => {
+      if (evt.key === Keys.Space) {
+        this.gameManager.nextPhase();
+        console.log(`Fase actual: ${this.gameManager.getCurrentPhase()}`);
+      }
+
+      // Tecla N para siguiente turno (debug)
+      if (evt.key === Keys.N) {
+        this.gameManager.nextPhase();
+        this.gameManager.nextPhase();
+        this.gameManager.nextPhase();
+        this.gameManager.nextPhase();
+      }
+    });
+
+    // Click en el mapa
+    this.input.pointers.primary.on('down', (evt) => {
+      const worldPos = evt.worldPos;
+      console.log(`Click en: ${worldPos.x}, ${worldPos.y}`);
+    });
+  }
+
+  override onPreUpdate(engine: Engine, elapsedMs: number): void {
+    // Lógica de actualización aquí si es necesaria
+  }
 }
+
+// Exportar también como MyLevel para compatibilidad
+export class MyLevel extends GameLevel {}
