@@ -3,12 +3,7 @@
 export enum TerrainType {
   Plain = 'plain',
   Forest = 'forest',
-  Hill = 'hill',
   Mountain = 'mountain',
-  River = 'river',
-  Swamp = 'swamp',
-  Road = 'road',
-  Village = 'village',
   Church = 'church',
   Castle = 'castle'
 }

@@ -34,9 +34,11 @@ export class GameManager {
   }
 
   public initialize(): void {
-    // Crear jugadores
+    // Crear 4 jugadores
     const player1 = this.playerSystem.createPlayer('player1', 'Jugador 1', '#FF0000');
     const player2 = this.playerSystem.createPlayer('player2', 'Jugador 2', '#0000FF');
+    const player3 = this.playerSystem.createPlayer('player3', 'Jugador 3', '#00FF00');
+    const player4 = this.playerSystem.createPlayer('player4', 'Jugador 4', '#FFFF00');
 
     this.gameState.currentPlayerId = player1.id;
 

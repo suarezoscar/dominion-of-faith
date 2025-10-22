@@ -14,15 +14,25 @@ export class GameLevel extends Scene {
     this.gameManager = new GameManager(this);
     this.gameManager.initialize();
 
-    // Crear unidades de prueba (ajustadas para mapa 12x10)
+    // Crear unidades de prueba (4 jugadores en mapa 20x20)
     const unitSystem = this.gameManager.getUnitSystem();
 
-    // Jugador 1: esquina superior izquierda
-    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player1', { x: 2, y: 2 });
-    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player1', { x: 3, y: 2 });
+    // Jugador 1: esquina superior izquierda (cerca del castillo)
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player1', { x: 1, y: 1 });
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player1', { x: 4, y: 1 });
 
-    // Jugador 2: esquina inferior derecha
-    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player2', { x: 9, y: 7 });
+    // Jugador 2: esquina superior derecha
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player2', { x: 18, y: 1 });
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player2', { x: 15, y: 1 });
+
+    // Jugador 3: esquina inferior izquierda
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player3', { x: 1, y: 18 });
+    console.log(`🗺️ Mapa: ${GAME_CONFIG.MAP_WIDTH}x${GAME_CONFIG.MAP_HEIGHT} tiles (4 jugadores)`);
+
+    console.log(`🏰 4 castillos en las esquinas`);
+    // Jugador 4: esquina inferior derecha
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player4', { x: 18, y: 18 });
+    unitSystem.createUnit(UnitType.Knight, UnitLevel.Basic, 'player4', { x: 15, y: 18 });
 
     // Configurar controles
     this.setupInput();

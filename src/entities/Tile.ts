@@ -10,11 +10,12 @@ export class Tile extends Actor {
     constructor(position: Position, terrain: TerrainType) {
         super({
             pos: vec(
-                position.x * GAME_CONFIG.TILE_SIZE,
-                position.y * GAME_CONFIG.TILE_SIZE
+                position.x * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2,
+                position.y * GAME_CONFIG.TILE_SIZE + GAME_CONFIG.TILE_SIZE / 2
             ),
             width: GAME_CONFIG.TILE_SIZE,
-            height: GAME_CONFIG.TILE_SIZE
+            height: GAME_CONFIG.TILE_SIZE,
+            anchor: vec(0.5, 0.5)
         });
 
         this.tileData = {
@@ -31,15 +32,20 @@ export class Tile extends Actor {
     private setupGraphics(): void {
         const sprite = this.getTerrainSprite();
         if (sprite) {
+            // Escalar el sprite para que llene el tile dejando margen del borde
+            sprite.width = GAME_CONFIG.TILE_SIZE - 4;
+            sprite.height = GAME_CONFIG.TILE_SIZE - 4;
+            // En Excalibur, usar directamente use() con el sprite
             this.graphics.use(sprite);
         } else {
             // Fallback a color si no hay sprite
             const color = this.getTerrainColor();
-            this.graphics.use(new Rectangle({
-                width: GAME_CONFIG.TILE_SIZE - 2,
-                height: GAME_CONFIG.TILE_SIZE - 2,
+            const fill = new Rectangle({
+                width: GAME_CONFIG.TILE_SIZE - 4,
+                height: GAME_CONFIG.TILE_SIZE - 4,
                 color
-            }));
+            });
+            this.graphics.use(fill);
         }
     }
 
@@ -91,18 +97,8 @@ export class Tile extends Actor {
                 return Color.fromHex('#90EE90');
             case TerrainType.Forest:
                 return Color.fromHex('#228B22');
-            case TerrainType.Hill:
-                return Color.fromHex('#D2B48C');
             case TerrainType.Mountain:
                 return Color.fromHex('#808080');
-            case TerrainType.River:
-                return Color.fromHex('#4682B4');
-            case TerrainType.Swamp:
-                return Color.fromHex('#556B2F');
-            case TerrainType.Road:
-                return Color.fromHex('#8B4513');
-            case TerrainType.Village:
-                return Color.fromHex('#FFE4B5');
             case TerrainType.Church:
                 return Color.fromHex('#FFD700');
             case TerrainType.Castle:
@@ -116,6 +112,10 @@ export class Tile extends Actor {
         const sprite = this.getTerrainSprite();
 
         if (sprite) {
+            // Escalar el sprite
+            sprite.width = GAME_CONFIG.TILE_SIZE - 4;
+            sprite.height = GAME_CONFIG.TILE_SIZE - 4;
+
             if (this.highlight) {
                 sprite.tint = Color.White.lighten(0.3);
             } else if (this.tileData.playerId && this.tileData.faithStrength > 0) {
@@ -124,17 +124,20 @@ export class Tile extends Actor {
             } else {
                 sprite.tint = Color.White;
             }
+
             this.graphics.use(sprite);
         } else {
+            // Fallback a color si no hay sprite
             let color = this.getTerrainColor();
             if (this.highlight) {
                 color = color.lighten(0.3);
             }
-            this.graphics.use(new Rectangle({
-                width: GAME_CONFIG.TILE_SIZE - 2,
-                height: GAME_CONFIG.TILE_SIZE - 2,
+            const fill = new Rectangle({
+                width: GAME_CONFIG.TILE_SIZE - 4,
+                height: GAME_CONFIG.TILE_SIZE - 4,
                 color
-            }));
+            });
+            this.graphics.use(fill);
         }
     }
 

@@ -27,29 +27,105 @@ export class MapSystem {
     }
   }
 
+  private terrainMap: Map<string, TerrainType> = new Map();
+
   private generateTerrain(x: number, y: number): TerrainType {
-    // Generación procedural ajustada para mapa 12x10 (móvil)
-    // Castillos en las esquinas
-    if ((x === 1 && y === 1) || (x === GAME_CONFIG.MAP_WIDTH - 2 && y === GAME_CONFIG.MAP_HEIGHT - 2)) {
+    const key = this.getKey(x, y);
+
+    // Si ya fue generado (parte de una zona), retornar
+    if (this.terrainMap.has(key)) {
+      return this.terrainMap.get(key)!;
+    }
+
+    // === CASTILLOS EN LAS 4 ESQUINAS (para 4 jugadores) ===
+    // Jugador 1: Esquina superior izquierda
+    if ((x === 2 && y === 2) || (x === 3 && y === 2) || (x === 2 && y === 3) || (x === 3 && y === 3)) {
+      this.terrainMap.set(key, TerrainType.Castle);
+      return TerrainType.Castle;
+    }
+    // Jugador 2: Esquina superior derecha
+    if ((x === GAME_CONFIG.MAP_WIDTH - 3 && y === 2) || (x === GAME_CONFIG.MAP_WIDTH - 4 && y === 2) ||
+        (x === GAME_CONFIG.MAP_WIDTH - 3 && y === 3) || (x === GAME_CONFIG.MAP_WIDTH - 4 && y === 3)) {
+      this.terrainMap.set(key, TerrainType.Castle);
+      return TerrainType.Castle;
+    }
+    // Jugador 3: Esquina inferior izquierda
+    if ((x === 2 && y === GAME_CONFIG.MAP_HEIGHT - 3) || (x === 3 && y === GAME_CONFIG.MAP_HEIGHT - 3) ||
+        (x === 2 && y === GAME_CONFIG.MAP_HEIGHT - 4) || (x === 3 && y === GAME_CONFIG.MAP_HEIGHT - 4)) {
+      this.terrainMap.set(key, TerrainType.Castle);
+      return TerrainType.Castle;
+    }
+    // Jugador 4: Esquina inferior derecha
+    if ((x === GAME_CONFIG.MAP_WIDTH - 3 && y === GAME_CONFIG.MAP_HEIGHT - 3) ||
+        (x === GAME_CONFIG.MAP_WIDTH - 4 && y === GAME_CONFIG.MAP_HEIGHT - 3) ||
+        (x === GAME_CONFIG.MAP_WIDTH - 3 && y === GAME_CONFIG.MAP_HEIGHT - 4) ||
+        (x === GAME_CONFIG.MAP_WIDTH - 4 && y === GAME_CONFIG.MAP_HEIGHT - 4)) {
+      this.terrainMap.set(key, TerrainType.Castle);
       return TerrainType.Castle;
     }
 
-    // Iglesias estratégicamente distribuidas (menos que antes por mapa más pequeño)
-    if ((x === 6 && y === 5) || (x === 3 && y === 7) || (x === 9 && y === 3)) {
-      return TerrainType.Church;
+    // === CORDILLERAS HORIZONTALES (4x1) ===
+    // Cordillera superior
+    if (y === 5 && x >= 4 && x <= 7) {
+      this.terrainMap.set(key, TerrainType.Mountain);
+      return TerrainType.Mountain;
     }
-
-    // Montañas en los bordes
-    if (x === 0 || y === 0 || x === GAME_CONFIG.MAP_WIDTH - 1 || y === GAME_CONFIG.MAP_HEIGHT - 1) {
+    if (y === 5 && x >= 12 && x <= 15) {
+      this.terrainMap.set(key, TerrainType.Mountain);
+      return TerrainType.Mountain;
+    }
+    // Cordillera central
+    if (y === 10 && x >= 2 && x <= 5) {
+      this.terrainMap.set(key, TerrainType.Mountain);
+      return TerrainType.Mountain;
+    }
+    if (y === 10 && x >= 14 && x <= 17) {
+      this.terrainMap.set(key, TerrainType.Mountain);
+      return TerrainType.Mountain;
+    }
+    // Cordillera inferior
+    if (y === 14 && x >= 4 && x <= 7) {
+      this.terrainMap.set(key, TerrainType.Mountain);
+      return TerrainType.Mountain;
+    }
+    if (y === 14 && x >= 12 && x <= 15) {
+      this.terrainMap.set(key, TerrainType.Mountain);
       return TerrainType.Mountain;
     }
 
-    // Distribución aleatoria de otros terrenos
-    const rand = Math.random();
-    if (rand < 0.5) return TerrainType.Plain;
-    if (rand < 0.7) return TerrainType.Forest;
-    if (rand < 0.8) return TerrainType.Hill;
-    if (rand < 0.85) return TerrainType.Village;
+    // === CORDILLERAS VERTICALES (1x4) ===
+    if (x === 5 && y >= 12 && y <= 15) {
+      this.terrainMap.set(key, TerrainType.Mountain);
+      return TerrainType.Mountain;
+    }
+    if (x === 14 && y >= 4 && y <= 7) {
+      this.terrainMap.set(key, TerrainType.Mountain);
+      return TerrainType.Mountain;
+    }
+
+    // === IGLESIAS (una por cuadrante) ===
+    if ((x === 5 && y === 8) || (x === 14 && y === 8) ||
+        (x === 8 && y === 5) || (x === 8 && y === 14)) {
+      this.terrainMap.set(key, TerrainType.Church);
+      return TerrainType.Church;
+    }
+
+    // === BOSQUES (2x2) - Distribuidos estratégicamente ===
+    const forestZones = [
+      {x: 7, y: 7}, {x: 12, y: 7}, {x: 7, y: 12}, {x: 12, y: 12},
+      {x: 4, y: 10}, {x: 15, y: 10}, {x: 10, y: 4}, {x: 10, y: 15}
+    ];
+
+    for (const zone of forestZones) {
+      if (x >= zone.x && x < zone.x + 2 && y >= zone.y && y < zone.y + 2) {
+        this.terrainMap.set(key, TerrainType.Forest);
+        return TerrainType.Forest;
+      }
+    }
+
+
+    // === LLANURA (por defecto - la mayoría del mapa) ===
+    this.terrainMap.set(key, TerrainType.Plain);
     return TerrainType.Plain;
   }
 
