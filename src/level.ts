@@ -143,11 +143,11 @@ export class GameLevel extends Scene {
         console.log(`🎯 Unidad seleccionada (Nivel ${unitData.level})`);
         console.log(`📍 Puede moverse a ${this.validMovementTiles.length} casillas`);
 
-        // Resaltar casillas válidas
+        // Resaltar casillas válidas con efecto de parpadeo
         this.validMovementTiles.forEach(pos => {
           const tile = mapSystem.getTileAt(pos.x, pos.y);
           if (tile) {
-            tile.setHighlight(true);
+            tile.setHighlight(true, true); // true para highlight, true para activar parpadeo
           }
         });
       } else {

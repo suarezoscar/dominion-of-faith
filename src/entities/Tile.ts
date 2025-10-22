@@ -1,4 +1,4 @@
-import {Actor, Color, vec, Rectangle, Sprite} from 'excalibur';
+import {Actor, Color, vec, Rectangle, Sprite, GraphicsGroup, Canvas} from 'excalibur';
 import {TerrainType, TileData, Position} from '../types';
 import {GAME_CONFIG} from '../config';
 import {Resources} from '../resources';
@@ -6,6 +6,8 @@ import {Resources} from '../resources';
 export class Tile extends Actor {
     private tileData: TileData;
     private highlight: boolean = false;
+    private pulseTime: number = 0;
+    private isPulsing: boolean = false;
 
     constructor(position: Position, terrain: TerrainType) {
         super({
@@ -116,21 +118,77 @@ export class Tile extends Actor {
             sprite.width = GAME_CONFIG.TILE_SIZE - 4;
             sprite.height = GAME_CONFIG.TILE_SIZE - 4;
 
-            if (this.highlight) {
-                sprite.tint = Color.White.lighten(0.3);
-            } else if (this.tileData.playerId && this.tileData.faithStrength > 0) {
-                const faithAlpha = this.tileData.faithStrength / 100;
-                sprite.tint = Color.fromRGB(255, 215, 0, faithAlpha * 0.3);
-            } else {
-                sprite.tint = Color.White;
-            }
+            // Si está resaltado con parpadeo, crear canvas con efectos
+            if (this.highlight && this.isPulsing) {
+                const pulseSpeed = 0.005;
+                const pulseValue = Math.sin(this.pulseTime * pulseSpeed) * 0.5 + 0.5;
 
-            this.graphics.use(sprite);
+                const canvas = new Canvas({
+                    width: GAME_CONFIG.TILE_SIZE,
+                    height: GAME_CONFIG.TILE_SIZE,
+                    draw: (ctx) => {
+                        const centerX = GAME_CONFIG.TILE_SIZE / 2;
+                        const centerY = GAME_CONFIG.TILE_SIZE / 2;
+                        const size = GAME_CONFIG.TILE_SIZE - 4;
+
+                        // Dibujar sprite de terreno
+                        const img = sprite.image?.image;
+                        if (img) {
+                            ctx.drawImage(img, 2, 2, size, size);
+                        }
+
+                        // Overlay amarillo parpadeante
+                        const overlayAlpha = 0.3 + (pulseValue * 0.5);
+                        ctx.fillStyle = `rgba(255, 255, 0, ${overlayAlpha})`;
+                        ctx.fillRect(2, 2, size, size);
+
+                        // Borde grueso parpadeante
+                        const borderThickness = 3 + Math.floor(pulseValue * 3);
+                        ctx.strokeStyle = 'rgba(255, 255, 0, 1)';
+                        ctx.lineWidth = borderThickness;
+                        ctx.strokeRect(2, 2, size, size);
+                    }
+                });
+
+                this.graphics.use(canvas);
+            } else if (this.highlight) {
+                // Resaltado estático sin parpadeo
+                const canvas = new Canvas({
+                    width: GAME_CONFIG.TILE_SIZE,
+                    height: GAME_CONFIG.TILE_SIZE,
+                    draw: (ctx) => {
+                        const size = GAME_CONFIG.TILE_SIZE - 4;
+
+                        // Dibujar sprite de terreno
+                        const img = sprite.image?.image;
+                        if (img) {
+                            ctx.drawImage(img, 2, 2, size, size);
+                        }
+
+                        // Overlay amarillo estático
+                        ctx.fillStyle = 'rgba(255, 255, 0, 0.4)';
+                        ctx.fillRect(2, 2, size, size);
+                    }
+                });
+
+                this.graphics.use(canvas);
+            } else {
+                // Sin resaltado, solo el sprite
+                sprite.tint = Color.White;
+                this.graphics.use(sprite);
+            }
         } else {
             // Fallback a color si no hay sprite
             let color = this.getTerrainColor();
             if (this.highlight) {
-                color = color.lighten(0.3);
+                if (this.isPulsing) {
+                    const pulseSpeed = 0.005;
+                    const pulseValue = Math.sin(this.pulseTime * pulseSpeed) * 0.5 + 0.5;
+                    const lightenAmount = 0.2 + (pulseValue * 0.5);
+                    color = color.lighten(lightenAmount);
+                } else {
+                    color = color.lighten(0.3);
+                }
             }
             const fill = new Rectangle({
                 width: GAME_CONFIG.TILE_SIZE - 4,
@@ -145,8 +203,13 @@ export class Tile extends Actor {
         return this.tileData;
     }
 
-    public setHighlight(highlight: boolean): void {
+    public setHighlight(highlight: boolean, enablePulse: boolean = false): void {
         this.highlight = highlight;
+        this.isPulsing = enablePulse;
+        if (!highlight) {
+            this.isPulsing = false;
+            this.pulseTime = 0;
+        }
         this.updateVisuals();
     }
 
@@ -158,6 +221,23 @@ export class Tile extends Actor {
 
     public getGridPosition(): Position {
         return this.tileData.position;
+    }
+
+    public setPulsing(pulsing: boolean): void {
+        this.isPulsing = pulsing;
+        if (!pulsing) {
+            this.pulseTime = 0;
+        }
+    }
+
+    override onPreUpdate(engine: any, elapsedMs: number): void {
+        super.onPreUpdate(engine, elapsedMs);
+
+        // Animar el parpadeo solo si está resaltado y pulsando
+        if (this.highlight && this.isPulsing) {
+            this.pulseTime += elapsedMs;
+            this.updateVisuals();
+        }
     }
 }
 

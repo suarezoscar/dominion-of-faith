@@ -1,4 +1,4 @@
-import { Actor, Color, vec, Circle, Sprite } from 'excalibur';
+import { Actor, Color, vec, Circle, Sprite, GraphicsGroup, Canvas } from 'excalibur';
 import { UnitData, UnitType, UnitLevel, Position } from '../types';
 import { GAME_CONFIG } from '../config';
 import { Resources } from '../resources';
@@ -6,6 +6,7 @@ import { Resources } from '../resources';
 export class Unit extends Actor {
   private unitData: UnitData;
   private selected: boolean = false;
+  private pulseTime: number = 0;
 
   constructor(unitData: UnitData) {
     super({
@@ -75,6 +76,9 @@ export class Unit extends Actor {
   }
 
   public setSelected(selected: boolean): void {
+    if (!selected) {
+      this.pulseTime = 0;
+    }
     this.selected = selected;
     this.updateVisuals();
   }
@@ -103,20 +107,71 @@ export class Unit extends Actor {
     const sprite = this.getUnitSprite();
 
     if (sprite) {
-      // Aplicar tinte según estado
+      // Si está seleccionada, crear un canvas con efectos dibujados
       if (this.selected) {
-        sprite.tint = Color.Yellow; // Resaltar en amarillo cuando está seleccionado
-      } else if (this.unitData.hasMoved) {
-        sprite.tint = Color.Gray; // Gris cuando ya se movió
+        const pulseSpeed = 0.006;
+        const pulseValue = Math.sin(this.pulseTime * pulseSpeed) * 0.5 + 0.5;
+
+        // Crear un canvas personalizado
+        const size = GAME_CONFIG.TILE_SIZE + 10;
+        const canvas = new Canvas({
+          width: size,
+          height: size,
+          draw: (ctx) => {
+            const centerX = size / 2;
+            const centerY = size / 2;
+
+            // Dibujar halo de fondo
+            const haloRadius = (GAME_CONFIG.TILE_SIZE / 2) + 2 + (pulseValue * 4);
+            const haloAlpha = 0.5 + (pulseValue * 0.4);
+            ctx.fillStyle = `rgba(255, 255, 0, ${haloAlpha})`;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, haloRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dibujar el sprite en el centro
+            if (this.unitData.hasMoved) {
+              ctx.globalAlpha = 0.5;
+            }
+            const spriteSize = GAME_CONFIG.TILE_SIZE;
+            const spriteX = centerX - spriteSize / 2;
+            const spriteY = centerY - spriteSize / 2;
+
+            // Dibujar sprite (necesitamos acceder a la imagen)
+            const img = sprite.image?.image;
+            if (img) {
+              ctx.drawImage(img, spriteX, spriteY, spriteSize, spriteSize);
+            }
+            ctx.globalAlpha = 1;
+
+            // Dibujar borde circular
+            const borderThickness = 3 + Math.floor(pulseValue * 3);
+            ctx.strokeStyle = 'rgba(255, 255, 0, 1)';
+            ctx.lineWidth = borderThickness;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, GAME_CONFIG.TILE_SIZE / 2, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        });
+
+        this.graphics.use(canvas);
       } else {
-        sprite.tint = Color.White; // Normal
+        // No seleccionada, usar sprite normal
+        if (this.unitData.hasMoved) {
+          sprite.tint = Color.Gray;
+        } else {
+          sprite.tint = Color.White;
+        }
+        this.graphics.use(sprite);
       }
-      this.graphics.use(sprite);
     } else {
       // Fallback a círculo
       let color = this.getUnitColor();
       if (this.selected) {
-        color = color.lighten(0.3);
+        const pulseSpeed = 0.006;
+        const pulseValue = Math.sin(this.pulseTime * pulseSpeed) * 0.5 + 0.5;
+        const lightenAmount = 0.3 + (pulseValue * 0.5);
+        color = color.lighten(lightenAmount);
       } else if (this.unitData.hasMoved) {
         color = color.darken(0.3);
       }
@@ -150,6 +205,16 @@ export class Unit extends Actor {
       maxHealth: this.unitData.maxHealth * 1.5,
       health: this.unitData.maxHealth * 1.5
     };
+  }
+
+  override onPreUpdate(engine: any, elapsedMs: number): void {
+    super.onPreUpdate(engine, elapsedMs);
+
+    // Animar el parpadeo de la unidad seleccionada
+    if (this.selected) {
+      this.pulseTime += elapsedMs;
+      this.updateVisuals();
+    }
   }
 }
 
