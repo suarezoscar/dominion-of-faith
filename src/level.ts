@@ -99,7 +99,7 @@ export class GameLevel extends Scene {
 
     if (!currentPlayer) return;
 
-    // Si hay una unidad seleccionada, intentar mover
+    // Sí hay una unidad seleccionada, intentar mover
     if (this.selectedUnit) {
       const targetPosition = { x: tileX, y: tileY };
 
@@ -117,7 +117,7 @@ export class GameLevel extends Scene {
         }
       }
 
-      // Deseleccionar y limpiar highlights
+      // De seleccionar y limpiar highlights
       this.clearSelection();
       return;
     }

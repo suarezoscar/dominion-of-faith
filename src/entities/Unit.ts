@@ -1,4 +1,4 @@
-import { Actor, Color, vec, Circle, Sprite, GraphicsGroup, Canvas } from 'excalibur';
+import { Actor, Color, vec, Circle, Sprite, Canvas } from 'excalibur';
 import { UnitData, UnitType, UnitLevel, Position } from '../types';
 import { GAME_CONFIG } from '../config';
 import { Resources } from '../resources';
@@ -107,7 +107,7 @@ export class Unit extends Actor {
     const sprite = this.getUnitSprite();
 
     if (sprite) {
-      // Si está seleccionada, crear un canvas con efectos dibujados
+      // Sí está seleccionada, crear un canvas con efectos dibujados
       if (this.selected) {
         const pulseSpeed = 0.006;
         const pulseValue = Math.sin(this.pulseTime * pulseSpeed) * 0.5 + 0.5;
